@@ -1,49 +1,62 @@
-InvenTree mobile app: APK builder (Android)
-==================================
+# InvenTree APK Builder (Android)
 
-This repository provides a Dockerfile to automate the build process for the InvenTree Android app, resulting in an APK file placed in the output directory.
+Builds the InvenTree Android app from source using Docker, producing an APK file in the output directory.
 
-In the releases section, one can download pre-built APK files, maintained on a best effort basis.
+The official InvenTree mobile app requires a paid download. This tool builds it for free from the open-source MIT-licensed source code at https://github.com/inventree/inventree-app.
 
-Requirements
-------------
+## Requirements
 
-*   Docker installed
-    
+- Docker Desktop (Windows/Mac) or Docker Engine (Linux)
+- ~10 GB free disk space (Flutter SDK + Android NDK + build cache)
 
-Usage
------
+## Usage
 
-1.  mkdir -p ./output
-    
-2.  docker build -t inventree-dockerbuild .
-    
-3.  docker run -v $(pwd)/output:/output -ti --rm inventree-dockerbuild
-    
+**1. Clone this repository**
 
-Output
-------
+    git clone https://github.com/your-repo/inventree-apk-builder
+    cd inventree-apk-builder
 
-*   The generated APK file will be available in the output subdirectory.
-    
+**2. Build the Docker image**
 
-Notes
------
+    docker build -t inventree-apk-builder .
 
-*   The Dockerfile clones the InvenTree Android app source and compiles it.   
-    
-*   The output directory is mapped to extract the generated APK from the container.
-    
+**3. Create the output directory and run the build**
 
-Troubleshooting
----------------
+    mkdir output
+    docker run --rm -v ${PWD}/output:/output inventree-apk-builder
 
-*   Ensure adequate disk space and correct dependency versions.
-    
-*   Run docker logs for build errors.
-    
+On first run, Gradle will download the Android SDK, NDK, and CMake. This takes 15-30 minutes depending on your connection. Subsequent runs use Docker layer cache and are much faster.
 
-License
--------
+**4. Install the APK**
+
+The APK will be at `output/app.apk`. Transfer it to your Android device and install it. You may need to enable "Install from unknown sources" in your device settings.
+
+## Connecting to InvenTree
+
+After installing, open the app and add your server:
+
+- Server URL: http://YOUR_SERVER_IP:PORT
+- Username and password: your InvenTree admin credentials
+- Your phone must be on the same network as your InvenTree server for local installs
+
+## Output
+
+- `output/app.apk` - signed release APK ready to install on Android
+
+## Notes
+
+- The Dockerfile clones the latest stable InvenTree app source on every image build. To pin to a specific version, edit the git clone line in the Dockerfile to use a specific tag.
+- The APK is signed with a self-generated dummy keystore. It is not suitable for Play Store publishing.
+- iOS is not supported. Apple requires a paid developer account to sideload apps.
+
+## Troubleshooting
+
+- **Out of disk space**: The build requires ~10 GB. Free up space or increase Docker Desktop's disk image size in Settings > Resources.
+- **Build fails with Gradle error**: Run `docker build --no-cache` to force a fresh clone of the latest source.
+- **App cannot connect to server**: Ensure your phone and server are on the same network. Use the IP address, not a hostname.
+
+## License
 
 Licensed under the MIT License. See the LICENSE file for more information.
+
+The InvenTree app source code is also MIT licensed: https://github.com/inventree/inventree-app
